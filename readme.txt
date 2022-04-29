@@ -20,6 +20,7 @@ then waiting for command, and try to run the command that the user write.
 in order to compile in linux needed to use gcc command
 worthwhile compile by using the file "makefile" to compile all files.
 using the command : "make"
+Or using "gcc -o ex1 ex1.c"
 
 
 
