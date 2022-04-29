@@ -1,19 +1,10 @@
-#include "ex1.h"
+#include "main.h"
 
 typedef int bool;
 
  /*****************************Private Function declaration******************************/
 char *getcwd(char *buf, size_t size);//show the path Of the current folder
-// void  DisplayPrompt();//Display Prompt : user@currect dir>
-// char** getArgv(char *input,char **argv,int *sizeOfArray,int *cmdLength, int count);  //Preparation of a receiver input as an expense
-// void garbageCollector(char** argv,int size); //Memory Release
-// int *countInput(char *input,int *cmdLength);
-// void executeCommand(char *input,char **argv,int sizeOfArray);
 
- /****************************/
-// static int *numOfCmd;
-// static int *cmdLength;
-/****************************/
 int main() {
     /*****************************************************************/
     numOfCmd = mmap(NULL, sizeof *numOfCmd, PROT_READ | PROT_WRITE,
@@ -46,12 +37,13 @@ int main() {
 
         if(exist_token[1] == true){
             printf("\n aqui temos | \n");
+            executePipeRedirect(input, argv, sizeOfArray, exist_token);
         } else if(exist_token[2] == true){
             printf("\n aqui temos > \n");
         } else if(exist_token[3] == true){
             printf("\n aqui temos < \n");
         } else{
-            executeCommand(input, argv, sizeOfArray);
+            executeCommand(argv, sizeOfArray);
         }
 
         if (strcmp(input,ENDING_WORD) != RESET){
@@ -73,7 +65,8 @@ void garbageCollector(char** argv,int size)
 }
 
 int *countInput(char *input,int *cmdLength){
-    int i=RESET, counter=RESET;
+    int i=RESET, counter=RESET, separator=RESET;
+    bool separator_bool = false;
     int *exist_token;
     exist_token = (int*)malloc((5)*(sizeof(int*)));
 
@@ -86,18 +79,25 @@ int *countInput(char *input,int *cmdLength){
     strcpy(inputCopy,input);
 
     char* ptr= strtok(input,CUTTING_WORD);
+    
     while(ptr!=NULL)
     {
         if(strcmp(ptr, com_redirection) == 0){
             exist_token[1] = true;
+            separator_bool = true;
         } else if(strcmp(ptr, com_stdout) == 0){
             exist_token[2] = true;
+            separator_bool = true;
         }else if(strcmp(ptr, com_stdin) == 0){
             exist_token[3] = true;
+            separator_bool = true;
         }
         ptr=strtok(NULL,CUTTING_WORD);
         counter++;
+        if(separator_bool == false)
+            separator++;
     }
+    exist_token[4] = separator;
     exist_token[0] = counter;
 
     return exist_token;
@@ -165,7 +165,7 @@ void DisplayPrompt()
 
 // -----------------------------------------------------------------
 
-void executeCommand(char *input,char **argv,int sizeOfArray){
+void executeCommand(char **argv,int sizeOfArray){
     pid_t id; 
     if (strcmp("cd",argv[RESET])==RESET){
         struct passwd *pwd;
@@ -190,6 +190,7 @@ void executeCommand(char *input,char **argv,int sizeOfArray){
         }
         else if(id==RESET) {
             (*numOfCmd)++;
+            printf("Aqui temos argv[0] = %s\n", argv[RESET]);
             execvp(argv[RESET],argv);
             garbageCollector(argv,sizeOfArray);
             exit(1);
@@ -197,4 +198,70 @@ void executeCommand(char *input,char **argv,int sizeOfArray){
             wait(&id);
         }
     }
+}
+
+void executePipeRedirect(char *input, char **argv, int sizeOfArray, int *exist_token){
+    char inputCopy[INPUT_SIZE];
+    strcpy(inputCopy,input);
+    char **argv_1;
+    argv_1 = (char**)malloc((exist_token[4]+1)*(sizeof(char*)));
+
+    char **argv_2;
+    argv_2 = (char**)malloc((exist_token[0]-exist_token[4])*(sizeof(char*)));
+    // printf("\n aqui há que %d e %d", exist_token[0], exist_token[4]);
+    for(int i = 0; i < exist_token[0]; i++){
+        if(i < exist_token[4]){
+            // printf("\nargv[i] = %s", argv[i]);
+            argv_1[i]=(char*)malloc((sizeof(char)+1)*strlen(argv[i]));
+            strcpy(argv_1[i],argv[i]);
+        }else if(i != exist_token[4]){ // condition to escape the pipe character
+            // printf("\nem else argv[i] = %s", argv[i]);
+            argv_2[i-exist_token[4]]=(char*)malloc((sizeof(char)+1)*strlen(argv[i]));
+            strcpy(argv_2[i-exist_token[4]],argv[i]);
+        }
+    }
+    int pipefd[2];
+    pipe(pipefd);
+    printf("aqui em 0.5\n");
+    pid_t child_pid = fork();
+    printf("aqui em 1\n");
+    if(child_pid == 0){ // child
+        printf("aqui em 2\n");
+        close(pipefd[0]);
+        dup2(pipefd[1], STDOUT_FILENO);
+        // close(pipefd[1]); // se pa descomentar essa linha
+        printf("aqui em 3\n");
+        // char *argv[] = {"", NULL};
+        // char *envp[] = {"", NULL};
+        printf("\naqui teremos 0: %s, 1: %s, 2: %s", argv_1[0], argv_1[1], argv_1[2]);
+        execvp(argv_1[RESET],argv_1);
+        perror("excves");
+    } else{ // parent
+        // pi
+        pid_t child_child_pid = fork();
+        if(child_child_pid == 0){
+            printf("\nsegundo if\n");
+            close(pipefd[1]);
+            dup2(pipefd[0], STDIN_FILENO);
+            execvp(argv_2[RESET], argv_2);
+            perror("excves");
+        }else{
+            printf("\nsegundo if 2\n");
+            close(pipefd[0]);
+            close(pipefd[1]);
+            printf("segundo if 3 ashuashu\n");
+            wait(NULL);
+            printf("aqui em 4, comando eh %s\n", argv_1[0]);
+        }
+        // close(pipefd[1]);
+        printf("aqui em 5\n");
+        // int status;
+        wait(NULL);
+        // printf("child exist value: %d\n", status);
+    }
+    printf("\n aqui pré final\n");
+    garbageCollector(argv_1,exist_token[4]);
+    garbageCollector(argv_2,exist_token[0]-exist_token[4]-1);
+
+    printf("\n aqui final\n");
 }

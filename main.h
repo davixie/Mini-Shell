@@ -12,6 +12,7 @@ In this exercise, we will execute a simple C language shell under the Linux oper
 #include <string.h>
 #include <sys/mman.h>
 #include <errno.h>
+#include "pipe.h"
 
 #define INPUT_SIZE 510 //The length of the maximum string for the user
 #define CUTTING_WORD " \n"//For dividing a string into single words (using in strtok)
@@ -31,7 +32,8 @@ void  DisplayPrompt();//Display Prompt : user@currect dir>
 char** getArgv(char *input,char **argv,int *sizeOfArray,int *cmdLength, int count);  //Preparation of a receiver input as an expense
 void garbageCollector(char** argv,int size); //Memory Release
 int *countInput(char *input,int *cmdLength);
-void executeCommand(char *input,char **argv,int sizeOfArray);
+void executeCommand(char **argv,int sizeOfArray);
+void executePipeRedirect(char *input, char **argv, int sizeOfArray, int *exist_token);
 
  /****************************/
 static int *numOfCmd;
