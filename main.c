@@ -222,40 +222,34 @@ void executePipeRedirect(char *input, char **argv, int sizeOfArray, int *exist_t
     }
     int pipefd[2];
     pipe(pipefd);
-    printf("aqui em 0.5\n");
+    printf("aqui em -1\n");
     pid_t child_pid = fork();
-    printf("aqui em 1\n");
+    printf("aqui em 0\n");
     if(child_pid == 0){ // child
-        printf("aqui em 2\n");
-        close(pipefd[0]);
-        dup2(pipefd[1], STDOUT_FILENO);
-        // close(pipefd[1]); // se pa descomentar essa linha
-        printf("\naqui teremos 0: %s, 1: %s, 2: %s", argv_1[0], argv_1[1], argv_1[2]);
-        execvp(argv_1[RESET],argv_1);
+        close(pipefd[1]);
+        dup2(pipefd[0], STDIN_FILENO);
+        execvp(argv_2[RESET],argv_2);
         perror("excves");
     } else{ // parent
         // pi
-        printf("aqui em 3\n");
+        printf("aqui em 1\n");
         pid_t child_child_pid = fork();
-        printf("aqui em 2.5\n");
+        printf("aqui em 2\n");
         if(child_child_pid == 0){
-            printf("\nsegundo if\n");
-            close(pipefd[1]);
-            dup2(pipefd[0], STDIN_FILENO);
-            printf("aqui em 4\n");
-            execvp(argv_2[RESET], argv_2);
+            close(pipefd[0]);
+            dup2(pipefd[1], STDOUT_FILENO);
+            execvp(argv_1[RESET], argv_1);
             perror("excves");
         }else{
-            printf("\nsegundo if 2\n");
             close(pipefd[0]);
             close(pipefd[1]);
-            printf("aqui em 4.5\n");
+            // wait(NULL);
             wait(NULL);
-            printf("aqui em 4, comando eh %s\n", argv_1[0]);
         }
         // close(pipefd[1]);
-        printf("aqui em 5\n");
         // int status;
+        // close(pipefd[0]);
+        // close(pipefd[1]);
         wait(NULL);
         printf("depois do ultimo wait\n");
         // printf("child exist value: %d\n", status);
