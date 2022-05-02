@@ -40,10 +40,8 @@ int main() {
         } else if(exist_token[2] == true){
             executeOut(input, argv, sizeOfArray, exist_token);
         } else if(exist_token[3] == true){
-            printf("\n aqui temos < \n");
             executeIn(input, argv, sizeOfArray, exist_token);
         } else{
-            // printando_aux(argv, sizeOfArray);
             executeCommand(argv, sizeOfArray);
         }
 
@@ -191,9 +189,7 @@ void executeCommand(char **argv,int sizeOfArray){
         }
         else if(id==RESET) {
             (*numOfCmd)++;
-            // printf("Aqui temos argv[0] = %s\n", argv[RESET]);
             execvp(argv[RESET],argv);
-            // printf("após o execvp\n");
             garbageCollector(argv,sizeOfArray);
             exit(1);
         }else {
@@ -222,52 +218,32 @@ void executePipeRedirect(char *input, char **argv, int sizeOfArray, int *exist_t
     }
     argv_1[exist_token[4]] = NULL;
     argv_2[exist_token[0]-exist_token[4]-1] = NULL;
-    // printf("inicio\n");
-    // printando_aux(argv_2, exist_token[0]-exist_token[4]-1);
-    // executeCommand(argv_2, exist_token[0]-exist_token[4]-1);
+
     int pipefd[2];
     pipe(pipefd);
-    // printf("aqui em -1\n");
     pid_t child_pid = fork();
-    // printf("aqui em 0\n");
     if(child_pid == 0){ // child
-        // printf("entrou em primeiro if\n");
         close(pipefd[0]);
         dup2(pipefd[1], STDOUT_FILENO);
         execvp(argv_1[RESET],argv_1);
-        // printf("erro aqui em cima\n");
         perror("excves\n");
     } else{ // parent
-        // pi
-        // printf("entrou em else para wait\n");
         wait(NULL);
-        // printf("aqui em executando o 1 parent\n");
         pid_t child_child_pid = fork();
-        // printf("aqui em 2\n");
         if(child_child_pid == 0){
-            // printf("aqui em segundo if\n");
             close(pipefd[1]);
             dup2(pipefd[0], STDIN_FILENO);
             execvp(argv_2[RESET], argv_2);
-            // printf("erro aqui embaixo\n");
             perror("excves\n");
         }else{
-            // printf("entrou em else para wait 2\n");
             close(pipefd[0]);
             close(pipefd[1]);
             wait(NULL);
-            // printf("aqui em executando o 2 parent\n");
-            close(pipefd[0]);
-            close(pipefd[1]);
         }
-        close(pipefd[0]);
-        close(pipefd[1]);
     }
-    // printf("\n aqui pré final\n");
     garbageCollector(argv_1,exist_token[4]);
     garbageCollector(argv_2,exist_token[0]-exist_token[4]-1);
 
-    // printf("\n aqui final\n");
 }
 
 void printando_aux(char **argv, int size){
@@ -345,11 +321,6 @@ void executeIn(char *input, char ** argv, int sizeOfArray, int *exist_token){
     }
     argv_1[token_position] = NULL;
     argv_2[exist_token[0]-token_position-1] = NULL;
-
-    // printf("--------------inicio\n");
-    // printando_aux(argv_1,token_position);
-    // printando_aux(argv_2,exist_token[0]-token_position-1);
-    // printf("--------------fim\n");
 
     pid_t child_pid = fork();
     int fd = open(argv_2[0], O_CREAT | O_RDWR, 0777);
