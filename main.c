@@ -306,10 +306,6 @@ void executeOut(char *input, char ** argv, int sizeOfArray, int *exist_token){
     argv_1[token_position] = NULL;
     argv_2[exist_token[0]-token_position-1] = NULL;
 
-    // printf("-------------------- inicio\n");
-    // printando_aux(argv_1,token_position);
-    // printando_aux(argv_2,exist_token[0]-token_position-1);
-    // printf("--------------------- fim\n");
     pid_t child_pid = fork();
     int fd = open(argv_2[0], O_CREAT | O_RDWR, 0777);
     if(child_pid == 0){ // child
@@ -331,7 +327,7 @@ void executeIn(char *input, char ** argv, int sizeOfArray, int *exist_token){
     char **argv_2;
     int token_position = -1;
     for(int i = 0; i < exist_token[0]; i++){
-        if(strstr(argv[i], ">") != 0)
+        if(strstr(argv[i], "<") != 0)
             token_position = i;
     }
     argv_1 = (char**)malloc((token_position+1)*(sizeof(char*)));
@@ -350,14 +346,15 @@ void executeIn(char *input, char ** argv, int sizeOfArray, int *exist_token){
     argv_1[token_position] = NULL;
     argv_2[exist_token[0]-token_position-1] = NULL;
 
-    // printf("-------------------- inicio\n");
+    // printf("--------------inicio\n");
     // printando_aux(argv_1,token_position);
     // printando_aux(argv_2,exist_token[0]-token_position-1);
-    // printf("--------------------- fim\n");
+    // printf("--------------fim\n");
+
     pid_t child_pid = fork();
     int fd = open(argv_2[0], O_CREAT | O_RDWR, 0777);
     if(child_pid == 0){ // child
-        dup2(fd, 1);
+        dup2(fd, 0);
         execvp(argv_1[RESET], argv_1);
         perror("excves\n");
     } else{

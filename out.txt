@@ -1,0 +1,11 @@
+hello
+hello.c
+in.txt
+main
+main.c
+main.h
+Makefile
+out.txt
+pipe.c
+pipe.h
+teste
