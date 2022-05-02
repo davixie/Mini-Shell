@@ -24,7 +24,6 @@ int main() {
     {   
         if(fgets(input,INPUT_SIZE,stdin)==RESET)
             printf(" ");
-        //do nothing...countine regular
         char token[] = " ";
 
         int *exist_token;
@@ -36,11 +35,11 @@ int main() {
         argv=getArgv(input,argv,&sizeOfArray,cmdLength,exist_token[0]);
 
         if(exist_token[1] == true){
-            executePipeRedirect(input, argv, sizeOfArray, exist_token);
+            executePipeRedirect(argv, sizeOfArray, exist_token);
         } else if(exist_token[2] == true){
-            executeOut(input, argv, sizeOfArray, exist_token);
+            executeOut(argv, sizeOfArray, exist_token);
         } else if(exist_token[3] == true){
-            executeIn(input, argv, sizeOfArray, exist_token);
+            executeIn(argv, sizeOfArray, exist_token);
         } else{
             executeCommand(argv, sizeOfArray);
         }
@@ -198,9 +197,7 @@ void executeCommand(char **argv,int sizeOfArray){
     }
 }
 
-void executePipeRedirect(char *input, char **argv, int sizeOfArray, int *exist_token){
-    char inputCopy[INPUT_SIZE];
-    strcpy(inputCopy,input);
+void executePipeRedirect(char **argv, int sizeOfArray, int *exist_token){
     char **argv_1;
     argv_1 = (char**)malloc((exist_token[4]+1)*(sizeof(char*)));
     char **argv_2;
@@ -256,9 +253,7 @@ void printando_aux(char **argv, int size){
     argv=NULL;
 }
 
-void executeOut(char *input, char ** argv, int sizeOfArray, int *exist_token){
-    char inputCopy[INPUT_SIZE];
-    strcpy(inputCopy,input);
+void executeOut(char ** argv, int sizeOfArray, int *exist_token){
     char **argv_1;
     char **argv_2;
     int token_position = -1;
@@ -296,9 +291,7 @@ void executeOut(char *input, char ** argv, int sizeOfArray, int *exist_token){
     garbageCollector(argv_2,exist_token[0]-token_position-1);
 }
 
-void executeIn(char *input, char ** argv, int sizeOfArray, int *exist_token){
-    char inputCopy[INPUT_SIZE];
-    strcpy(inputCopy,input);
+void executeIn(char ** argv, int sizeOfArray, int *exist_token){
     char **argv_1;
     char **argv_2;
     int token_position = -1;
