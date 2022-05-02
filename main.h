@@ -12,6 +12,8 @@ In this exercise, we will execute a simple C language shell under the Linux oper
 #include <string.h>
 #include <sys/mman.h>
 #include <errno.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include "pipe.h"
 
 #define INPUT_SIZE 510 //The length of the maximum string for the user
@@ -35,6 +37,9 @@ int *countInput(char *input,int *cmdLength);
 void executeCommand(char **argv,int sizeOfArray);
 void executePipeRedirect(char *input, char **argv, int sizeOfArray, int *exist_token);
 void printando_aux(char **argv, int size);
+void executeOut(char *input, char ** argv, int sizeOfArray, int *exist_token);
+void executeIn(char *input, char ** argv, int sizeOfArray, int *exist_token);
+
  /****************************/
 static int *numOfCmd;
 static int *cmdLength;

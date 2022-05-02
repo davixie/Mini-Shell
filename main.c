@@ -36,12 +36,12 @@ int main() {
         argv=getArgv(input,argv,&sizeOfArray,cmdLength,exist_token[0]);
 
         if(exist_token[1] == true){
-            printf("\n aqui temos | \n");
             executePipeRedirect(input, argv, sizeOfArray, exist_token);
         } else if(exist_token[2] == true){
-            printf("\n aqui temos > \n");
+            executeOut(input, argv, sizeOfArray, exist_token);
         } else if(exist_token[3] == true){
             printf("\n aqui temos < \n");
+            executeIn(input, argv, sizeOfArray, exist_token);
         } else{
             // printando_aux(argv, sizeOfArray);
             executeCommand(argv, sizeOfArray);
@@ -227,7 +227,7 @@ void executePipeRedirect(char *input, char **argv, int sizeOfArray, int *exist_t
     // executeCommand(argv_2, exist_token[0]-exist_token[4]-1);
     int pipefd[2];
     pipe(pipefd);
-    printf("aqui em -1\n");
+    // printf("aqui em -1\n");
     pid_t child_pid = fork();
     // printf("aqui em 0\n");
     if(child_pid == 0){ // child
@@ -280,4 +280,90 @@ void printando_aux(char **argv, int size){
     argv=NULL;
 }
 
-// void executeOut(char *input, char ** argv, int sizeOfArray, int)
+void executeOut(char *input, char ** argv, int sizeOfArray, int *exist_token){
+    char inputCopy[INPUT_SIZE];
+    strcpy(inputCopy,input);
+    char **argv_1;
+    char **argv_2;
+    int token_position = -1;
+    for(int i = 0; i < exist_token[0]; i++){
+        if(strstr(argv[i], ">") != 0)
+            token_position = i;
+    }
+    argv_1 = (char**)malloc((token_position+1)*(sizeof(char*)));
+    argv_2 = (char**)malloc((exist_token[0]-exist_token[4])*(sizeof(char*)));
+    for(int i = 0; i < exist_token[0]; i++){
+        if(i < token_position){
+            argv_1[i]=(char*)malloc((sizeof(char)+1)*strlen(argv[i]));
+            strcpy(argv_1[i],argv[i]);
+            argv_1[i][strlen(argv[i])]='\0';
+        }else if(i > token_position){ // condition to escape the pipe character
+            argv_2[i-token_position-1]=(char*)malloc((sizeof(char)+1)*strlen(argv[i]));
+            strcpy(argv_2[i-token_position-1],argv[i]);
+            argv_2[i-token_position-1][strlen(argv[i])]='\0';
+        }
+    }
+    argv_1[token_position] = NULL;
+    argv_2[exist_token[0]-token_position-1] = NULL;
+
+    // printf("-------------------- inicio\n");
+    // printando_aux(argv_1,token_position);
+    // printando_aux(argv_2,exist_token[0]-token_position-1);
+    // printf("--------------------- fim\n");
+    pid_t child_pid = fork();
+    int fd = open(argv_2[0], O_CREAT | O_RDWR, 0777);
+    if(child_pid == 0){ // child
+        dup2(fd, 1);
+        execvp(argv_1[RESET], argv_1);
+        perror("excves\n");
+    } else{
+        wait(NULL);
+    }
+
+    garbageCollector(argv_1,token_position);
+    garbageCollector(argv_2,exist_token[0]-token_position-1);
+}
+
+void executeIn(char *input, char ** argv, int sizeOfArray, int *exist_token){
+    char inputCopy[INPUT_SIZE];
+    strcpy(inputCopy,input);
+    char **argv_1;
+    char **argv_2;
+    int token_position = -1;
+    for(int i = 0; i < exist_token[0]; i++){
+        if(strstr(argv[i], ">") != 0)
+            token_position = i;
+    }
+    argv_1 = (char**)malloc((token_position+1)*(sizeof(char*)));
+    argv_2 = (char**)malloc((exist_token[0]-exist_token[4])*(sizeof(char*)));
+    for(int i = 0; i < exist_token[0]; i++){
+        if(i < token_position){
+            argv_1[i]=(char*)malloc((sizeof(char)+1)*strlen(argv[i]));
+            strcpy(argv_1[i],argv[i]);
+            argv_1[i][strlen(argv[i])]='\0';
+        }else if(i > token_position){ // condition to escape the pipe character
+            argv_2[i-token_position-1]=(char*)malloc((sizeof(char)+1)*strlen(argv[i]));
+            strcpy(argv_2[i-token_position-1],argv[i]);
+            argv_2[i-token_position-1][strlen(argv[i])]='\0';
+        }
+    }
+    argv_1[token_position] = NULL;
+    argv_2[exist_token[0]-token_position-1] = NULL;
+
+    // printf("-------------------- inicio\n");
+    // printando_aux(argv_1,token_position);
+    // printando_aux(argv_2,exist_token[0]-token_position-1);
+    // printf("--------------------- fim\n");
+    pid_t child_pid = fork();
+    int fd = open(argv_2[0], O_CREAT | O_RDWR, 0777);
+    if(child_pid == 0){ // child
+        dup2(fd, 1);
+        execvp(argv_1[RESET], argv_1);
+        perror("excves\n");
+    } else{
+        wait(NULL);
+    }
+
+    garbageCollector(argv_1,token_position);
+    garbageCollector(argv_2,exist_token[0]-token_position-1);
+}
