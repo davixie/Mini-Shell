@@ -34,7 +34,7 @@ void garbageCollector(char** argv,int size); //Memory Release
 int *countInput(char *input,int *cmdLength);
 void executeCommand(char **argv,int sizeOfArray);
 void executePipeRedirect(char *input, char **argv, int sizeOfArray, int *exist_token);
-
+void printando_aux(char **argv, int size);
  /****************************/
 static int *numOfCmd;
 static int *cmdLength;
