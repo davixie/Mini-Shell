@@ -6,6 +6,6 @@ main.c
 main.h
 Makefile
 out.txt
-pipe.c
-pipe.h
+README.md
 teste
+ste
